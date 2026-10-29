@@ -42,4 +42,37 @@ describe('TrackerCore', () => {
     expect(t.onHide(40)).toEqual([{ page: 7, startTime: 0, duration: 40, totalPages: 10 }]);
     expect(t.onClose(99)).toEqual([]); // already flushed + paused by hide
   });
+
+  it('accumulates session time across page changes', () => {
+    const t = new TrackerCore(cfg);
+    t.onPage(1, 10, 0);
+    expect(t.getSessionSeconds(30)).toBe(30);
+    t.onPage(2, 10, 50); // flush page 1's 50s
+    expect(t.getSessionSeconds(70)).toBe(70);
+  });
+
+  it('pauses session time on idle and hide', () => {
+    const t = new TrackerCore(cfg);
+    t.onPage(1, 10, 0);
+    t.onIdle(50);
+    expect(t.getSessionSeconds(200)).toBe(50);
+
+    t.onPage(1, 10, 200);
+    t.onHide(230);
+    expect(t.getSessionSeconds(500)).toBe(80);
+  });
+
+  it('includes TTS time added from another clock', () => {
+    const t = new TrackerCore(cfg);
+    t.onPage(1, 10, 0);
+    t.onIdle(20);
+    t.addSessionSeconds(90);
+    expect(t.getSessionSeconds(500)).toBe(110);
+  });
+
+  it('caps pending session time at maxEventSeconds', () => {
+    const t = new TrackerCore(cfg);
+    t.onPage(1, 10, 0);
+    expect(t.getSessionSeconds(10_000)).toBe(cfg.maxEventSeconds);
+  });
 });

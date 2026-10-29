@@ -612,6 +612,7 @@ describe('services/constants', () => {
       expect(typeof DEFAULT_VIEW_CONFIG.showRemainingPages).toBe('boolean');
       expect(typeof DEFAULT_VIEW_CONFIG.showProgressInfo).toBe('boolean');
       expect(typeof DEFAULT_VIEW_CONFIG.showCurrentTime).toBe('boolean');
+      expect(typeof DEFAULT_VIEW_CONFIG.showReadingTime).toBe('boolean');
       expect(typeof DEFAULT_VIEW_CONFIG.showCurrentBatteryStatus).toBe('boolean');
       expect(typeof DEFAULT_VIEW_CONFIG.showBatteryPercentage).toBe('boolean');
       expect(typeof DEFAULT_VIEW_CONFIG.use24HourClock).toBe('boolean');

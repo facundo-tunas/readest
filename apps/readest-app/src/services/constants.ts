@@ -494,6 +494,7 @@ export const DEFAULT_VIEW_CONFIG: ViewConfig = {
   showProgressInfo: true,
   showStickyProgressBar: false,
   showCurrentTime: false,
+  showReadingTime: false,
   showCurrentBatteryStatus: false,
   showBatteryPercentage: true,
   use24HourClock: false,

@@ -15,6 +15,7 @@ import { pushStatsToBookOrbit } from '@/services/bookorbit/statsPush';
 import { pushStats, pullStats } from '@/services/statistics/statsSync';
 import { isSyncCategoryEnabled } from '@/services/sync/syncCategories';
 import { useSettingsStore } from '@/store/settingsStore';
+import { clearReadingSession, setReadingSessionSeconds } from '@/store/readingSessionStore';
 import { eventDispatcher } from '@/utils/event';
 
 const nowSec = () => Math.floor(Date.now() / 1000);
@@ -46,6 +47,10 @@ export default function ReadingStatsTracker({ bookKey }: { bookKey: string }) {
     ttsSessionManager.getPlaybackState() === 'playing' &&
       ttsSessionManager.getActiveSession()?.bookHash === getBookHashFromKey(bookKey),
   );
+  // TTS is still reading time, so the session clock keeps running while the
+  // page tracker stands down. Tracked separately and folded back into the core
+  // when playback stops.
+  const ttsStartedAtRef = useRef<number | null>(ttsPlayingRef.current ? nowSec() : null);
 
   const bookData = getBookData(bookKey);
   const book = bookData?.book;
@@ -134,6 +139,22 @@ export default function ReadingStatsTracker({ bookKey }: { bookKey: string }) {
     armIdle();
   };
 
+  // Publish the live session clock for the footer timer.
+  useEffect(() => {
+    const publish = () => {
+      const now = nowSec();
+      const ttsElapsed =
+        ttsStartedAtRef.current === null ? 0 : Math.max(now - ttsStartedAtRef.current, 0);
+      setReadingSessionSeconds(bookKey, coreRef.current.getSessionSeconds(now) + ttsElapsed);
+    };
+    publish();
+    const timer = setInterval(publish, 1000);
+    return () => {
+      clearInterval(timer);
+      clearReadingSession(bookKey);
+    };
+  }, [bookKey]);
+
   // Page changes drive the tracker.
   useEffect(() => {
     if (ttsPlayingRef.current) return;
@@ -156,7 +177,13 @@ export default function ReadingStatsTracker({ bookKey }: { bookKey: string }) {
       if (playing) {
         if (idleRef.current) clearTimeout(idleRef.current);
         void persist(coreRef.current.onIdle(nowSec()));
+        ttsStartedAtRef.current = nowSec();
       } else {
+        const startedAt = ttsStartedAtRef.current;
+        if (startedAt !== null) {
+          coreRef.current.addSessionSeconds(nowSec() - startedAt);
+          ttsStartedAtRef.current = null;
+        }
         openPageAt(getBookProgress(bookKey)?.pageinfo);
       }
     };

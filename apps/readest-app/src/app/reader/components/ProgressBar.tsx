@@ -6,6 +6,7 @@ import { useEnv } from '@/context/EnvContext';
 import { useReaderStore } from '@/store/readerStore';
 import { useThemeStore } from '@/store/themeStore';
 import { useBookProgress } from '@/store/readerProgressStore';
+import { useReadingSessionSeconds } from '@/store/readingSessionStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useBookDataStore } from '@/store/bookDataStore';
 import {
@@ -33,6 +34,7 @@ import StatusInfo from './StatusInfo.tsx';
 import StickyProgressBar from './StickyProgressBar.tsx';
 import { convertPagesToTimeRemainingMinutes } from '@/app/library/utils/libraryUtils.ts';
 import { formatDuration } from '@/utils/duration';
+import { formatPlaybackTime } from '@/utils/time';
 import { getMarginalInlinePadding } from '@/utils/insets';
 import { SIZE_PER_LOC, SIZE_PER_TIME_UNIT } from '@/services/constants';
 import { CHUNKED_SECTION_THRESHOLD, getCalibratedPagePair } from '@/utils/chapterScreens';
@@ -324,6 +326,8 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   const textColor = getChromeTextColor(viewSettings, isEink);
   const fontSize = getChromeFontSize(viewSettings, isEink);
   const showStatusInfo = hasTimeInfo || hasBatteryInfo;
+  const readingSeconds = useReadingSessionSeconds(bookKey);
+  const readingTimeStr = formatPlaybackTime(readingSeconds);
 
   // The text is centered in the marginBottomPx strip, so on phones with rounded
   // screen corners a small bottom margin drops its ends into the corner arc.
@@ -487,6 +491,17 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
               </span>
             ) : null}
           </div>
+        )}
+
+        {viewSettings.showReadingTime && (
+          <span
+            role='timer'
+            className={clsx('reading-time tabular-nums', pillClass)}
+            style={pillStyle}
+            aria-label={`${_('Reading Time')}: ${readingTimeStr}`}
+          >
+            {readingTimeStr}
+          </span>
         )}
 
         {showStatusInfo && (

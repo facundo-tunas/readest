@@ -1373,6 +1373,7 @@ const FoliateViewer: React.FC<{
     viewSettings?.showRemainingPages,
     viewSettings?.showProgressInfo,
     viewSettings?.showCurrentTime,
+    viewSettings?.showReadingTime,
     viewSettings?.showCurrentBatteryStatus,
   ]);
 

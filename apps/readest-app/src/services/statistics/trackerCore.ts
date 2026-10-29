@@ -22,6 +22,7 @@ export interface FlushedEvent {
  */
 export class TrackerCore {
   private pending: PendingEvent | null = null;
+  private sessionSeconds = 0;
 
   constructor(private readonly cfg: StatsTrackingConfig) {}
 
@@ -48,12 +49,30 @@ export class TrackerCore {
     return this.flush(now);
   }
 
+  /**
+   * Active reading time accumulated since this tracker started, including the
+   * current page's dwell. This is the same clock the persisted events use, so
+   * the reading timer and statistics stay in sync.
+   */
+  getSessionSeconds(now: number): number {
+    const p = this.pending;
+    if (!p) return this.sessionSeconds;
+    const raw = Math.max(now - p.startTime, 0);
+    return this.sessionSeconds + Math.min(raw, this.cfg.maxEventSeconds);
+  }
+
+  /** Add elapsed time from another reading clock, such as TTS playback. */
+  addSessionSeconds(seconds: number): void {
+    this.sessionSeconds += Math.max(seconds, 0);
+  }
+
   private flush(now: number): FlushedEvent[] {
     const p = this.pending;
     this.pending = null;
     if (!p) return [];
     const raw = now - p.startTime;
     const duration = Math.min(Math.max(raw, 0), this.cfg.maxEventSeconds);
+    this.sessionSeconds += duration;
     if (duration < this.cfg.minEventSeconds) return [];
     return [{ page: p.page, startTime: p.startTime, duration, totalPages: p.totalPages }];
   }

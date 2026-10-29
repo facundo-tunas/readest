@@ -83,6 +83,7 @@ const LayoutPanel: React.FC<SettingsPanelPanelProp> = ({ bookKey, onRegisterRese
     viewSettings.showStickyProgressBar,
   );
   const [showCurrentTime, setShowCurrentTime] = useState(viewSettings.showCurrentTime);
+  const [showReadingTime, setShowReadingTime] = useState(viewSettings.showReadingTime);
   const [use24HourClock, setUse24HourClock] = useState(viewSettings.use24HourClock);
   const [showCurrentBatteryStatus, setShowCurrentBatteryStatus] = useState(
     viewSettings.showCurrentBatteryStatus,
@@ -152,6 +153,7 @@ const LayoutPanel: React.FC<SettingsPanelPanelProp> = ({ bookKey, onRegisterRese
       showProgressInfo: setShowProgressInfo,
       showStickyProgressBar: setShowStickyProgressBar,
       showCurrentTime: setShowCurrentTime,
+      showReadingTime: setShowReadingTime,
       use24HourClock: setUse24HourClock,
       showCurrentBatteryStatus: setShowCurrentBatteryStatus,
       showBatteryPercentage: setShowBatteryPercentage,
@@ -413,6 +415,11 @@ const LayoutPanel: React.FC<SettingsPanelPanelProp> = ({ bookKey, onRegisterRese
     saveViewSettings(envConfig, bookKey, 'showCurrentTime', showCurrentTime, false, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showCurrentTime]);
+
+  useEffect(() => {
+    saveViewSettings(envConfig, bookKey, 'showReadingTime', showReadingTime, false, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showReadingTime]);
 
   useEffect(() => {
     saveViewSettings(envConfig, bookKey, 'use24HourClock', use24HourClock, false, false);
@@ -854,6 +861,13 @@ const LayoutPanel: React.FC<SettingsPanelPanelProp> = ({ bookKey, onRegisterRese
             onChange={() => setUse24HourClock(!use24HourClock)}
           />
         )}
+        <SettingsSwitchRow
+          label={_('Reading Time')}
+          checked={showReadingTime}
+          disabled={!showFooter}
+          onChange={() => setShowReadingTime(!showReadingTime)}
+          data-setting-id='settings.layout.showReadingTime'
+        />
         <SettingsSwitchRow
           label={_('Battery Status')}
           checked={showCurrentBatteryStatus}

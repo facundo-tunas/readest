@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import ProgressBar from '@/app/reader/components/ProgressBar';
+import { clearReadingSession, setReadingSessionSeconds } from '@/store/readingSessionStore';
 import { DEFAULT_VIEW_CONFIG } from '@/services/constants';
 import { clearChapterScreens, recordChapterScreens } from '@/utils/chapterScreens';
 import type { BookProgress, ViewSettings } from '@/types/book';
@@ -105,6 +106,7 @@ const renderProgressBar = () =>
 afterEach(() => {
   cleanup();
   clearChapterScreens('book-1');
+  clearReadingSession('book-1');
 });
 
 beforeEach(() => {
@@ -157,6 +159,20 @@ describe('ProgressBar — fixed-layout remaining pages', () => {
     expect(container.querySelector('.progressinfo')?.getAttribute('aria-label')).toContain(
       'pages left in chapter',
     );
+  });
+});
+
+describe('ProgressBar — reading time', () => {
+  it('renders the live session time from the stats store', () => {
+    currentViewSettings = {
+      ...baseSettings,
+      showReadingTime: true,
+    } as ViewSettings;
+    setReadingSessionSeconds('book-1', 3725);
+
+    const { container } = renderProgressBar();
+
+    expect(container.querySelector('[role="timer"]')?.textContent).toBe('1:02:05');
   });
 });
 
@@ -569,6 +585,7 @@ describe('ProgressBar — tap to toggle visibility (#5293)', () => {
       showRemainingTime: false,
       showRemainingPages: false,
       showCurrentTime: false,
+      showReadingTime: false,
       showCurrentBatteryStatus: false,
       showStickyProgressBar: false,
     });

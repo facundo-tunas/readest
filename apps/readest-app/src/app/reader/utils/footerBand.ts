@@ -19,6 +19,7 @@ export const footerInfoVisible = (viewSettings: ViewSettings): boolean =>
     viewSettings.showRemainingPages ||
     viewSettings.showProgressInfo ||
     viewSettings.showCurrentTime ||
+    viewSettings.showReadingTime ||
     viewSettings.showCurrentBatteryStatus
   );
 

@@ -374,6 +374,7 @@ export interface ViewConfig {
   showProgressInfo: boolean;
   showStickyProgressBar: boolean;
   showCurrentTime: boolean;
+  showReadingTime: boolean;
   use24HourClock: boolean;
   showCurrentBatteryStatus: boolean;
   showBatteryPercentage: boolean;

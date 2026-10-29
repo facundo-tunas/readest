@@ -30,6 +30,7 @@ describe('footerInfoVisible', () => {
           showRemainingPages: false,
           showProgressInfo: false,
           showCurrentTime: false,
+          showReadingTime: false,
           showCurrentBatteryStatus: false,
         }),
       ),
@@ -44,6 +45,22 @@ describe('footerInfoVisible', () => {
           showRemainingPages: true,
           showProgressInfo: false,
           showCurrentTime: false,
+          showReadingTime: false,
+          showCurrentBatteryStatus: false,
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('is true when only the reading timer is enabled', () => {
+    expect(
+      footerInfoVisible(
+        settings({
+          showRemainingTime: false,
+          showRemainingPages: false,
+          showProgressInfo: false,
+          showCurrentTime: false,
+          showReadingTime: true,
           showCurrentBatteryStatus: false,
         }),
       ),
@@ -70,6 +87,7 @@ describe('footerReservesBand', () => {
           showRemainingPages: false,
           showProgressInfo: false,
           showCurrentTime: false,
+          showReadingTime: false,
           showCurrentBatteryStatus: false,
         }),
       ),
@@ -96,6 +114,7 @@ describe('footerReservesBand', () => {
           showRemainingPages: false,
           showProgressInfo: false,
           showCurrentTime: false,
+          showReadingTime: false,
           showCurrentBatteryStatus: false,
         }),
       ),

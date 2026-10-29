@@ -31,6 +31,9 @@ vi.mock('@/services/statistics/statsSync', () => ({
   pullStats: vi.fn(),
 }));
 vi.mock('@/services/sync/syncCategories', () => ({ isSyncCategoryEnabled: () => false }));
+vi.mock('@/store/settingsStore', () => ({
+  useSettingsStore: { getState: () => ({ settings: { bookorbit: {} } }) },
+}));
 vi.mock('@/libs/sync', () => ({ SyncClient: class {} }));
 vi.mock('@/services/tts/TTSSessionManager', () => ({
   ttsSessionManager: {
@@ -41,6 +44,7 @@ vi.mock('@/services/tts/TTSSessionManager', () => ({
 }));
 
 import { eventDispatcher } from '@/utils/event';
+import { clearReadingSession, getReadingSessionSeconds } from '@/store/readingSessionStore';
 import ReadingStatsTracker from '@/app/reader/components/ReadingStatsTracker';
 
 describe('ReadingStatsTracker', () => {
@@ -101,6 +105,7 @@ describe('ReadingStatsTracker while TTS plays', () => {
     } as unknown as null);
     mocks.playbackState = null;
     setPage(0);
+    clearReadingSession(BOOK_KEY);
   });
 
   afterEach(() => {
@@ -176,5 +181,44 @@ describe('ReadingStatsTracker while TTS plays', () => {
     await settle();
 
     expect(mocks.db.insertPageEvent).toHaveBeenCalled();
+  });
+
+  it('publishes live session seconds and clears them on unmount', async () => {
+    vi.setSystemTime(1_000_000);
+    const { unmount } = mount();
+    await settle();
+
+    await settle(5_000);
+    expect(getReadingSessionSeconds(BOOK_KEY)).toBe(5);
+
+    unmount();
+    expect(getReadingSessionSeconds(BOOK_KEY)).toBe(0);
+  });
+
+  it('pauses the live session after the idle timeout', async () => {
+    vi.setSystemTime(1_000_000);
+    mount();
+    await settle();
+
+    await settle(130_000);
+    const afterIdle = getReadingSessionSeconds(BOOK_KEY);
+    expect(afterIdle).toBe(120);
+
+    await settle(10_000);
+    expect(getReadingSessionSeconds(BOOK_KEY)).toBe(afterIdle);
+  });
+
+  it('counts TTS playback toward the live session', async () => {
+    vi.setSystemTime(1_000_000);
+    mount();
+    await settle();
+    await emitPlaybackState('playing');
+
+    await settle(10_000);
+    expect(getReadingSessionSeconds(BOOK_KEY)).toBe(10);
+
+    await emitPlaybackState('stopped');
+    await settle(5_000);
+    expect(getReadingSessionSeconds(BOOK_KEY)).toBe(15);
   });
 });
